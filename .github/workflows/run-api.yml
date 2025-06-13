@@ -24,9 +24,13 @@ jobs:
             -v "${{ github.workspace }}":/project \
             -e SLM_LICENSE_SERVER="${{ secrets.SLM_LICENSE_SERVER }}" \
             -e API_KEY="${{ secrets.SLM_API_KEY }}" \
-            -e COMMAND_LINE="'-Esandbox' -sDemoAppProject -cTestScenarios -RJUnit -f/project/reports /project/DemoAppProject.xml" \
-            smartbear/ready-api-soapui-testrunner
-            
+            smartbear/ready-api-soapui-testrunner \
+            -sDemoAppProject \
+            -cTestScenarios \
+            -RJUnit \
+            -f/project/reports \
+            /project/DemoAppProject.xml
+
       - name: Display Test Results in CLI
         run: |
           echo "📄 Displaying test results:"
