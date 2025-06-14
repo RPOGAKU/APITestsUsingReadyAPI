@@ -22,7 +22,7 @@ jobs:
           # Create .env file with all required variables
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
-          echo "COMMAND_LINE=-Esandbox -sDemoAppProject -cTestScenarios -RJUnit -f/project/reports /project/DemoAppProject.xml" >> .env
+          echo "COMMAND_LINE=-Esandbox -sDemoAppProject -cTestScenarios -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
       
           # Pull and run the Docker container
           docker pull smartbear/ready-api-soapui-testrunner
