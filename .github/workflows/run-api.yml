@@ -26,10 +26,9 @@ jobs:
 
           # Pull and run the Docker container
           docker pull smartbear/ready-api-soapui-testrunner
-          
-          docker run \
-            --env-file .env \
-            -v "${{ github.workspace }}":/project:rw \
+                
+          docker run --env-file .env \
+            -v "${{ github.workspace }}:/project:rw" \
             smartbear/ready-api-soapui-testrunner
 
       - name: Debug Report Directory
