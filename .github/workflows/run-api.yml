@@ -3,6 +3,10 @@ name: Run ReadyAPI Tests
 on:
   workflow_dispatch:
 
+permissions:
+  checks: write
+  contents: read
+
 jobs:
   run-tests:
     runs-on: ubuntu-latest
