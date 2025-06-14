@@ -11,8 +11,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Create reports directory
-        run: mkdir -p ${{ github.workspace }}/reports
+      - name: Create reports directory with open permissions
+        run: |
+          mkdir -p ${{ github.workspace }}/reports
+          chmod 777 ${{ github.workspace }}/reports
 
       - name: Run ReadyAPI tests via Docker
         run: |
@@ -24,12 +26,11 @@ jobs:
           echo "COMMAND_LINE=-Esandbox -sDemoAppProject -cTestScenarios -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
       
           docker pull smartbear/ready-api-soapui-testrunner
-      
+          
           docker run \
-            --env-file .env \
-            -v "${{ github.workspace }}:/project" \
-            --user $(id -u):$(id -g) \
-            smartbear/ready-api-soapui-testrunner
+                --env-file .env \
+                -v "${{ github.workspace }}:/project" \
+                smartbear/ready-api-soapui-testrunner
 
       - name: Debug Report Directory
         run: |
