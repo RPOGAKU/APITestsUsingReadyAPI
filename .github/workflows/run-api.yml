@@ -24,11 +24,11 @@ jobs:
 
           docker pull smartbear/ready-api-soapui-testrunner
           docker run \
-            -v "${{ github.workspace }}":/project \
-            -e SLM_LICENSE_SERVER="${{ secrets.SLM_LICENSE_SERVER }}" \
-            -e API_KEY="${{ secrets.SLM_API_KEY }}" \
-            smartbear/ready-api-soapui-testrunner \
-            -f/project/reports -RJUnit -Esandbox -sDemoAppProject -cTestScenarios /project/DemoAppProject.xml
+                -v "${{ github.workspace }}":/project \
+                -e SLM_LICENSE_SERVER="${{ secrets.SLM_LICENSE_SERVER }}" \
+                -e API_KEY="${{ secrets.SLM_API_KEY }}" \
+                -e COMMAND_LINE="-f/project/reports -RJUnit -Esandbox -sDemoAppProject -cTestScenarios /project/DemoAppProject.xml" \
+                smartbear/ready-api-soapui-testrunner
 
       - name: Display Test Results in CLI
         run: |
