@@ -18,27 +18,40 @@ jobs:
         run: |
           echo "📂 Listing files in workspace:"
           ls -la "${{ github.workspace }}"
-      
+
           # Create .env file with all required variables
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
           echo "COMMAND_LINE=-Esandbox -sDemoAppProject -cTestScenarios -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
-      
+
           # Pull and run the Docker container
           docker pull smartbear/ready-api-soapui-testrunner
-      
+
           docker run \
             --env-file .env \
             -v "${{ github.workspace }}":/project \
             smartbear/ready-api-soapui-testrunner
-      
+
+      - name: Debug Report Directory
+        run: |
+          echo "📁 Contents of reports directory:"
+          ls -la ./reports
+
       - name: Display Test Results in CLI
         run: |
           echo "📄 Displaying test results:"
-          cat ./reports/TEST-*.xml || echo "No test result file found."
+          cat ./reports/*.xml || echo "No test result file found."
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: readyapi-results
           path: ./reports
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: ReadyAPI Test Results
+          path: ./reports/*.xml
+          reporter: java-junit
