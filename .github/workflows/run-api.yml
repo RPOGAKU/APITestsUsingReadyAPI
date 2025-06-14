@@ -38,10 +38,58 @@ jobs:
           echo "📁 Contents of reports directory:"
           ls -la ./reports
 
-      - name: Display Test Results in CLI
+      - name: Display JUnit Test Summary in CLI
         run: |
-          echo "📄 Displaying test results:"
-          cat ./reports/*.xml || echo "No test result file found."
+          echo "📊 Parsing JUnit XML reports..."
+          python3 - <<EOF
+          import os
+          import xml.etree.ElementTree as ET
+      
+          report_dir = './reports'
+          total_tests = 0
+          total_failures = 0
+          total_skipped = 0
+          test_results = []
+      
+          for filename in os.listdir(report_dir):
+              if filename.endswith('.xml'):
+                  filepath = os.path.join(report_dir, filename)
+                  tree = ET.parse(filepath)
+                  root = tree.getroot()
+                  suites = root.findall('testsuite') if root.tag == 'testsuites' else [root]
+      
+                  for suite in suites:
+                      total_tests += int(suite.attrib.get('tests', 0))
+                      total_failures += int(suite.attrib.get('failures', 0))
+                      total_skipped += int(suite.attrib.get('skipped', 0))
+      
+                      for case in suite.findall('testcase'):
+                          classname = case.attrib.get('classname', '')
+                          name = case.attrib.get('name', '')
+                          status = 'PASSED'
+                          if case.find('failure') is not None:
+                              status = 'FAILED'
+                          elif case.find('skipped') is not None:
+                              status = 'SKIPPED'
+                          test_results.append((classname, name, status))
+      
+          print("┌────────────────────────────┬────────────┐")
+          print("│         Test Result        │   Count    │")
+          print("├────────────────────────────┼────────────┤")
+          print(f"│ Total Tests                │ {total_tests:<10} │")
+          print(f"│ Passed                     │ {total_tests - total_failures - total_skipped:<10} │")
+          print(f"│ Failed                     │ {total_failures:<10} │")
+          print(f"│ Skipped                    │ {total_skipped:<10} │")
+          print("└────────────────────────────┴────────────┘\\n")
+      
+          print("Individual Test Results:")
+          print("┌──────────────────────────────────────────────┬────────────────────────────────┬──────────┐")
+          print("│ Class Name                                   │ Test Name                      │ Status   │")
+          print("├──────────────────────────────────────────────┼────────────────────────────────┼──────────┤")
+          for classname, name, status in test_results:
+              print(f"│ {classname:<44} │ {name:<30} │ {status:<8} │")
+          print("└──────────────────────────────────────────────┴────────────────────────────────┴──────────┘")
+          EOF
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
