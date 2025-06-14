@@ -15,20 +15,20 @@ jobs:
         run: mkdir -p ${{ github.workspace }}/reports
 
       - name: Run ReadyAPI tests via Docker
-        env:
-          SLM_API_KEY: ${{ secrets.SLM_API_KEY }}
-          SLM_LICENSE_SERVER: ${{ secrets.SLM_LICENSE_SERVER }}
         run: |
           echo "📂 Listing files in workspace:"
           ls -la "${{ github.workspace }}"
-
+      
+          echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
+          echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
+          echo "COMMAND_LINE='-Esandbox -sDemoAppProject -cTestScenarios -RJUnit -f/project/reports /project/DemoAppProject.xml'" >> .env
+      
           docker pull smartbear/ready-api-soapui-testrunner
+      
           docker run \
-                -v "${{ github.workspace }}":/project \
-                -e SLM_LICENSE_SERVER="${{ secrets.SLM_LICENSE_SERVER }}" \
-                -e API_KEY="${{ secrets.SLM_API_KEY }}" \
-                -e COMMAND_LINE="-f/project/reports -RJUnit -Esandbox -sDemoAppProject -cTestScenarios /project/DemoAppProject.xml" \
-                smartbear/ready-api-soapui-testrunner
+            --env-file .env \
+            -v "${{ github.workspace }}":/project \
+            smartbear/ready-api-soapui-testrunner
 
       - name: Display Test Results in CLI
         run: |
