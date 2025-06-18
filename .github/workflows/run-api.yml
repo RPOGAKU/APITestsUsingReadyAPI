@@ -24,13 +24,13 @@ jobs:
         run: |
           echo "📂 Listing files in workspace:"
           ls -la "${{ github.workspace }}"
-      
+
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
           echo "COMMAND_LINE=-Esandbox -sDemoAppProject -cTestScenarios -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
-      
+
           docker pull smartbear/ready-api-soapui-testrunner
-      
+
           docker run --env-file .env -v "${{ github.workspace }}:/project" smartbear/ready-api-soapui-testrunner
 
       - name: Debug Report Directory
@@ -44,25 +44,25 @@ jobs:
           python3 - <<EOF
           import os
           import xml.etree.ElementTree as ET
-      
+
           report_dir = './reports'
           total_tests = 0
           total_failures = 0
           total_skipped = 0
           test_results = []
-      
+
           for filename in os.listdir(report_dir):
               if filename.endswith('.xml'):
                   filepath = os.path.join(report_dir, filename)
                   tree = ET.parse(filepath)
                   root = tree.getroot()
                   suites = root.findall('testsuite') if root.tag == 'testsuites' else [root]
-      
+
                   for suite in suites:
                       total_tests += int(suite.attrib.get('tests', 0))
                       total_failures += int(suite.attrib.get('failures', 0))
                       total_skipped += int(suite.attrib.get('skipped', 0))
-      
+
                       for case in suite.findall('testcase'):
                           name = case.attrib.get('name', '')
                           status = 'PASSED'
@@ -70,8 +70,14 @@ jobs:
                               status = 'FAILED'
                           elif case.find('skipped') is not None:
                               status = 'SKIPPED'
-                          test_results.append((name, status))
-      
+
+                          if '|' in name:
+                              scenario, test_name = [part.strip() for part in name.split('|', 1)]
+                          else:
+                              scenario, test_name = 'Unknown', name
+
+                          test_results.append((scenario, test_name, status))
+
           summary_lines = []
           summary_lines.append("## 🧪 ReadyAPI Test Summary\n")
           summary_lines.append("| Result | Count |")
@@ -80,17 +86,16 @@ jobs:
           summary_lines.append(f"| Passed | {total_tests - total_failures - total_skipped} |")
           summary_lines.append(f"| Failed | {total_failures} |")
           summary_lines.append(f"| Skipped| {total_skipped} |\n")
-      
+
           summary_lines.append("### 📋 Individual Test Results")
-          summary_lines.append("| Test Name | Status |")
-          summary_lines.append("|-----------|--------|")
-          for name, status in test_results:
-              summary_lines.append(f"| {name} | {status} |")
-      
+          summary_lines.append("| Scenario | Test Name | Status |")
+          summary_lines.append("|----------|-----------|--------|")
+          for scenario, name, status in test_results:
+              summary_lines.append(f"| {scenario} | {name} | {status} |")
+
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'w') as summary_file:
               summary_file.write('\n'.join(summary_lines))
-      
-          # Also print to CLI
+
           print('\n'.join(summary_lines))
           EOF
 
