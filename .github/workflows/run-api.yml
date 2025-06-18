@@ -38,7 +38,7 @@ jobs:
           echo "📁 Contents of reports directory:"
           ls -la ./reports
 
-      - name: Display JUnit Test Summary in CLI
+      - name: Display JUnit Test Summary in CLI and Job Summary
         run: |
           echo "📊 Parsing JUnit XML reports..."
           python3 - <<EOF
@@ -64,31 +64,34 @@ jobs:
                       total_skipped += int(suite.attrib.get('skipped', 0))
       
                       for case in suite.findall('testcase'):
-                          classname = case.attrib.get('classname', '')
                           name = case.attrib.get('name', '')
                           status = 'PASSED'
                           if case.find('failure') is not None:
                               status = 'FAILED'
                           elif case.find('skipped') is not None:
                               status = 'SKIPPED'
-                          test_results.append((classname, name, status))
+                          test_results.append((name, status))
       
-          print("┌────────────────────────────┬────────────┐")
-          print("│         Test Result        │   Count    │")
-          print("├────────────────────────────┼────────────┤")
-          print(f"│ Total Tests                │ {total_tests:<10} │")
-          print(f"│ Passed                     │ {total_tests - total_failures - total_skipped:<10} │")
-          print(f"│ Failed                     │ {total_failures:<10} │")
-          print(f"│ Skipped                    │ {total_skipped:<10} │")
-          print("└────────────────────────────┴────────────┘\\n")
+          summary_lines = []
+          summary_lines.append("## 🧪 ReadyAPI Test Summary\n")
+          summary_lines.append("| Result | Count |")
+          summary_lines.append("|--------|-------|")
+          summary_lines.append(f"| Total  | {total_tests} |")
+          summary_lines.append(f"| Passed | {total_tests - total_failures - total_skipped} |")
+          summary_lines.append(f"| Failed | {total_failures} |")
+          summary_lines.append(f"| Skipped| {total_skipped} |\n")
       
-          print("Individual Test Results:")
-          print("┌──────────────────────────────────────────────┬────────────────────────────────┬──────────┐")
-          print("│ Class Name                                   │ Test Name                      │ Status   │")
-          print("├──────────────────────────────────────────────┼────────────────────────────────┼──────────┤")
-          for classname, name, status in test_results:
-              print(f"│ {classname:<44} │ {name:<30} │ {status:<8} │")
-          print("└──────────────────────────────────────────────┴────────────────────────────────┴──────────┘")
+          summary_lines.append("### 📋 Individual Test Results")
+          summary_lines.append("| Test Name | Status |")
+          summary_lines.append("|-----------|--------|")
+          for name, status in test_results:
+              summary_lines.append(f"| {name} | {status} |")
+      
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'w') as summary_file:
+              summary_file.write('\n'.join(summary_lines))
+      
+          # Also print to CLI
+          print('\n'.join(summary_lines))
           EOF
 
       - name: Upload Test Results
