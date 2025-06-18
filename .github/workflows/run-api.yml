@@ -3,10 +3,6 @@ name: Run ReadyAPI Tests
 on:
   workflow_dispatch:
 
-permissions:
-  checks: write
-  contents: read
-
 jobs:
   run-tests:
     runs-on: ubuntu-latest
@@ -15,100 +11,34 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Create reports directory with open permissions
-        run: |
-          mkdir -p ${{ github.workspace }}/reports
-          chmod 777 ${{ github.workspace }}/reports
+      - name: Create reports directory
+        run: mkdir -p ${{ github.workspace }}/reports
 
       - name: Run ReadyAPI tests via Docker
         run: |
           echo "📂 Listing files in workspace:"
           ls -la "${{ github.workspace }}"
-
+      
+          # Create .env file with all required variables
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
-          echo "COMMAND_LINE=-Esandbox -sTestSuite -cTestCase -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
-
+          echo "COMMAND_LINE=-Esandbox -sDemoAppProject -cTestScenarios -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
+      
+          # Pull and run the Docker container
           docker pull smartbear/ready-api-soapui-testrunner
-
-          docker run --env-file .env -v "${{ github.workspace }}:/project" smartbear/ready-api-soapui-testrunner
-
-      - name: Debug Report Directory
+      
+          docker run \
+            --env-file .env \
+            -v "${{ github.workspace }}":/project \
+            smartbear/ready-api-soapui-testrunner
+      
+      - name: Display Test Results in CLI
         run: |
-          echo "📁 Contents of reports directory:"
-          ls -la ./reports
-
-      - name: Display JUnit Test Summary in CLI and Job Summary
-        run: |
-          echo "📊 Parsing JUnit XML reports..."
-          python3 - <<EOF
-          import os
-          import xml.etree.ElementTree as ET
-
-          report_dir = './reports'
-          total_tests = 0
-          total_failures = 0
-          total_skipped = 0
-          test_results = []
-
-          for filename in os.listdir(report_dir):
-              if filename.endswith('.xml'):
-                  filepath = os.path.join(report_dir, filename)
-                  tree = ET.parse(filepath)
-                  root = tree.getroot()
-                  suites = root.findall('testsuite') if root.tag == 'testsuites' else [root]
-
-                  for suite in suites:
-                      total_tests += int(suite.attrib.get('tests', 0))
-                      total_failures += int(suite.attrib.get('failures', 0))
-                      total_skipped += int(suite.attrib.get('skipped', 0))
-
-                      for case in suite.findall('testcase'):
-                          name = case.attrib.get('name', '')
-                          status = 'PASSED'
-                          if case.find('failure') is not None:
-                              status = 'FAILED'
-                          elif case.find('skipped') is not None:
-                              status = 'SKIPPED'
-
-                          if '|' in name:
-                              scenario, test_name = [part.strip() for part in name.split('|', 1)]
-                          else:
-                              scenario, test_name = 'Unknown', name
-
-                          test_results.append((scenario, test_name, status))
-
-          summary_lines = []
-          summary_lines.append("## 🧪 ReadyAPI Test Summary\n")
-          summary_lines.append("| Result | Count |")
-          summary_lines.append("|--------|-------|")
-          summary_lines.append(f"| Total  | {total_tests} |")
-          summary_lines.append(f"| Passed | {total_tests - total_failures - total_skipped} |")
-          summary_lines.append(f"| Failed | {total_failures} |")
-          summary_lines.append(f"| Skipped| {total_skipped} |\n")
-
-          summary_lines.append("### 📋 Individual Test Results")
-          summary_lines.append("| Scenario | Test Name | Status |")
-          summary_lines.append("|----------|-----------|--------|")
-          for scenario, name, status in test_results:
-              summary_lines.append(f"| {scenario} | {name} | {status} |")
-
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'w') as summary_file:
-              summary_file.write('\n'.join(summary_lines))
-
-          print('\n'.join(summary_lines))
-          EOF
+          echo "📄 Displaying test results:"
+          cat ./reports/TEST-*.xml || echo "No test result file found."
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
           name: readyapi-results
           path: ./reports
-
-      - name: Publish Test Report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: ReadyAPI Test Results
-          path: ./reports/*.xml
-          reporter: java-junit
