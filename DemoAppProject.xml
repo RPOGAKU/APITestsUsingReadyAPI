@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <con:soapui-project id="5a367f2c-632a-4cb8-8ebf-2c2ea67cefb9" created="3.58.0" activeEnvironment="sandbox" encryptionMode="Not encrypted" name="DemoAppProject" projectVersion="" updated="3.58.0 2025-01-10T10:05:45Z" xmlns:con="http://eviware.com/soapui/config">
-  <con:settings/>
+  <con:settings>
+    <con:setting id="IncludeOverview">true</con:setting>
+    <con:setting id="IncludeResults">true</con:setting>
+    <con:setting id="FlowLayout">false</con:setting>
+    <con:setting id="ErrorDetails">true</con:setting>
+    <con:setting id="IncludeCoverage">true</con:setting>
+  </con:settings>
   <con:interface xsi:type="con:RestService" id="8373443e-492b-4834-90b8-ec23c28d38da" name="DemoApp" type="rest_ex" wadlVersion="https://swagger.io/openapiv3/specification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <con:settings id="222392bc-9b13-4d36-b31d-c95b5412989d"/>
     <con:definitionCache type="TEXT" rootPart="DemoApp.json">
@@ -92,10 +98,16 @@
       </con:environmentSpec>
     </con:resource>
   </con:interface>
-  <con:testSuite id="ac726459-0c9d-4196-8e36-f24ecd20b7fd" name="DemoAppProject">
-    <con:settings id="ccab29d0-6615-4ef0-ab3c-ae6b3a696546"/>
+  <con:testSuite id="ac726459-0c9d-4196-8e36-f24ecd20b7fd" name="TestSuite">
+    <con:settings id="ccab29d0-6615-4ef0-ab3c-ae6b3a696546">
+      <con:setting id="IncludeOverview">true</con:setting>
+      <con:setting id="IncludeResults">true</con:setting>
+      <con:setting id="FlowLayout">true</con:setting>
+      <con:setting id="ErrorDetails">true</con:setting>
+      <con:setting id="IncludeCoverage">true</con:setting>
+    </con:settings>
     <con:runType>SEQUENTIAL</con:runType>
-    <con:testCase id="a10d50b1-4e68-4c1c-b00c-98ba9a45e6cb" discardOkResults="false" failOnError="false" failTestCaseOnErrors="true" keepSession="false" name="TestScenarios" searchProperties="true" timeout="0">
+    <con:testCase id="a10d50b1-4e68-4c1c-b00c-98ba9a45e6cb" discardOkResults="false" failOnError="false" failTestCaseOnErrors="true" keepSession="false" name="TestCase" searchProperties="true" timeout="0">
       <con:settings/>
       <con:testStep type="datasource" name="DataSource" id="e09e52a5-736c-4389-87b8-a9033896dc8f">
         <con:settings/>
@@ -103,9 +115,9 @@
           <con:dataSource type="Grid">
             <con:configuration>
               <check><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry></xml-fragment>]]></check>
-              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">Positive - GET</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">1-13EU3D</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
-              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">Positive - POST</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config">{   "order":[     {       "orderId":"1-13EU3D",       "created":"2007-01-29 19:24:07.000",       "createdBy":"1-31-200",       "lastUpd":"2015-03-16 18:58:26.000",       "lastUpdBy":"0-1",       "modificationNum":6,       "activeFlg":"Y"          }   ] }</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
-              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">Negative - POST (Invalid JSON Payload)</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config">{ "orderId": "123"</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
+              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">Positive: GET</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">1-13EU3D</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
+              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">Positive: POST</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config">{   "order":[     {       "orderId":"1-13EU3D",       "created":"2007-01-29 19:24:07.000",       "createdBy":"1-31-200",       "lastUpd":"2015-03-16 18:58:26.000",       "lastUpdBy":"0-1",       "modificationNum":6,       "activeFlg":"Y"          }   ] }</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
+              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">Negative: POST (Invalid JSON Payload)</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config">{ "orderId": "123"</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
               <recognizeAsPlainText>true</recognizeAsPlainText>
             </con:configuration>
           </con:dataSource>
@@ -118,7 +130,7 @@
           <con:stopDatasourceExhausted>false</con:stopDatasourceExhausted>
         </con:config>
       </con:testStep>
-      <con:testStep type="groovy" name="GroovyScript" id="c31eb370-830e-4e4b-8a60-99cd1340060b">
+      <con:testStep type="groovy" name="UpdateTestCaseName" id="c31eb370-830e-4e4b-8a60-99cd1340060b">
         <con:settings/>
         <con:config>
           <script>// Retrieve data from the Data Source
@@ -141,6 +153,14 @@ if (orderId) {
 } else {
     log.info "Neither orderId nor payload is provided."
 }
+
+
+// Get scenario value from the data source
+def scenario = context.expand('${DataSource#scenario}')
+
+// Set new name with scenario prefix
+testRunner.testCase.name = "${scenario}"
+
 </script>
         </con:config>
       </con:testStep>
@@ -200,6 +220,94 @@ if (orderId) {
                 <SLA>20000</SLA>
               </con:configuration>
             </con:assertion>
+            <con:assertion type="DataAndMetadataAssertion" id="36779c51-5a07-4f96-9c5b-e5482105cc47" name="Smart Assertion">
+              <con:configuration xsi:type="con:DataAndMetadataAssertion">
+                <con:mode>Received Data</con:mode>
+                <con:elements>
+                  <con:path>$['order'][0]['orderId']</con:path>
+                  <con:element>orderId</con:element>
+                  <con:operatorId>1</con:operatorId>
+                  <con:enabled>true</con:enabled>
+                  <con:expectedValue>1-13EU3D</con:expectedValue>
+                  <con:caseSensitive>true</con:caseSensitive>
+                  <con:numberType>false</con:numberType>
+                  <con:expectedDataType>1</con:expectedDataType>
+                </con:elements>
+                <con:elements>
+                  <con:path>$['order'][0]['created']</con:path>
+                  <con:element>created</con:element>
+                  <con:operatorId>1</con:operatorId>
+                  <con:enabled>true</con:enabled>
+                  <con:expectedValue>2007-01-29 19:24:07.000</con:expectedValue>
+                  <con:caseSensitive>true</con:caseSensitive>
+                  <con:numberType>false</con:numberType>
+                  <con:expectedDataType>1</con:expectedDataType>
+                </con:elements>
+                <con:elements>
+                  <con:path>$['order'][0]['createdBy']</con:path>
+                  <con:element>createdBy</con:element>
+                  <con:operatorId>1</con:operatorId>
+                  <con:enabled>true</con:enabled>
+                  <con:expectedValue>1-31-200</con:expectedValue>
+                  <con:caseSensitive>true</con:caseSensitive>
+                  <con:numberType>false</con:numberType>
+                  <con:expectedDataType>1</con:expectedDataType>
+                </con:elements>
+                <con:elements>
+                  <con:path>$['order'][0]['lastUpd']</con:path>
+                  <con:element>lastUpd</con:element>
+                  <con:operatorId>1</con:operatorId>
+                  <con:enabled>true</con:enabled>
+                  <con:expectedValue>2015-03-16 18:58:26.000</con:expectedValue>
+                  <con:caseSensitive>true</con:caseSensitive>
+                  <con:numberType>false</con:numberType>
+                  <con:expectedDataType>1</con:expectedDataType>
+                </con:elements>
+                <con:elements>
+                  <con:path>$['order'][0]['lastUpdBy']</con:path>
+                  <con:element>lastUpdBy</con:element>
+                  <con:operatorId>1</con:operatorId>
+                  <con:enabled>true</con:enabled>
+                  <con:expectedValue>0-1</con:expectedValue>
+                  <con:caseSensitive>true</con:caseSensitive>
+                  <con:numberType>false</con:numberType>
+                  <con:expectedDataType>1</con:expectedDataType>
+                </con:elements>
+                <con:elements>
+                  <con:path>$['order'][0]['modificationNum']</con:path>
+                  <con:element>modificationNum</con:element>
+                  <con:operatorId>1</con:operatorId>
+                  <con:enabled>true</con:enabled>
+                  <con:expectedValue>6</con:expectedValue>
+                  <con:caseSensitive>true</con:caseSensitive>
+                  <con:numberType>true</con:numberType>
+                  <con:expectedDataType>2</con:expectedDataType>
+                </con:elements>
+                <con:elements>
+                  <con:path>$['order'][0]['activeFlg']</con:path>
+                  <con:element>activeFlg</con:element>
+                  <con:operatorId>1</con:operatorId>
+                  <con:enabled>true</con:enabled>
+                  <con:expectedValue>Y</con:expectedValue>
+                  <con:caseSensitive>true</con:caseSensitive>
+                  <con:numberType>false</con:numberType>
+                  <con:expectedDataType>1</con:expectedDataType>
+                </con:elements>
+                <con:originalMessage>{
+  "order": [
+    {
+      "orderId": "1-13EU3D",
+      "created": "2007-01-29 19:24:07.000",
+      "createdBy": "1-31-200",
+      "lastUpd": "2015-03-16 18:58:26.000",
+      "lastUpdBy": "0-1",
+      "modificationNum": 6,
+      "activeFlg": "Y"
+    }
+  ]
+}</con:originalMessage>
+              </con:configuration>
+            </con:assertion>
             <con:credentials>
               <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
               <con:authType>No Authorization</con:authType>
@@ -217,6 +325,12 @@ if (orderId) {
               </con:entry>
             </con:environmentSpec>
           </con:restRequest>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="groovy" name="RevertToOriginal" id="f62fda37-a485-4979-ac6a-5477ff7ce756">
+        <con:settings/>
+        <con:config>
+          <script>testRunner.testCase.name = "TestCase"</script>
         </con:config>
       </con:testStep>
       <con:testStep type="datasourceloop" name="DataSourceLoop" id="8960acc1-0d4b-4239-bf2c-c5316de0566a">
