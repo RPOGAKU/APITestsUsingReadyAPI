@@ -27,7 +27,7 @@ jobs:
 
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
-          echo "COMMAND_LINE=-Esandbox -sDemoAppProject -cTestScenarios -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
+          echo "COMMAND_LINE=-Esandbox -sTestSuite -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
 
           docker pull smartbear/ready-api-soapui-testrunner
 
