@@ -107,17 +107,16 @@
       <con:setting id="IncludeCoverage">true</con:setting>
     </con:settings>
     <con:runType>SEQUENTIAL</con:runType>
-    <con:testCase id="a10d50b1-4e68-4c1c-b00c-98ba9a45e6cb" discardOkResults="false" failOnError="false" failTestCaseOnErrors="true" keepSession="false" name="TestCase" searchProperties="true" timeout="0">
+    <con:testCase id="a10d50b1-4e68-4c1c-b00c-98ba9a45e6cb" discardOkResults="false" failOnError="false" failTestCaseOnErrors="true" keepSession="false" name="PositiveTestCase" searchProperties="true" timeout="0">
       <con:settings/>
       <con:testStep type="datasource" name="DataSource" id="e09e52a5-736c-4389-87b8-a9033896dc8f">
         <con:settings/>
         <con:config xsi:type="con:DataSourceStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:dataSource type="Grid">
             <con:configuration>
-              <check><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry></xml-fragment>]]></check>
-              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">Positive: GET</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">1-13EU3D</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
-              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">Positive: POST</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config">{   "order":[     {       "orderId":"1-13EU3D",       "created":"2007-01-29 19:24:07.000",       "createdBy":"1-31-200",       "lastUpd":"2015-03-16 18:58:26.000",       "lastUpdBy":"0-1",       "modificationNum":6,       "activeFlg":"Y"          }   ] }</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
-              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">Negative: POST (Invalid JSON Payload)</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config">{ "orderId": "123"</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
+              <check><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry></xml-fragment>]]></check>
+              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">GET</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">1-13EU3D</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
+              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">POST</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config">{   "order":[     {       "orderId":"1-13EU3D",       "created":"2007-01-29 19:24:07.000",       "createdBy":"1-31-200",       "lastUpd":"2015-03-16 18:58:26.000",       "lastUpdBy":"0-1",       "modificationNum":6,       "activeFlg":"Y"          }   ] }</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
               <recognizeAsPlainText>true</recognizeAsPlainText>
             </con:configuration>
           </con:dataSource>
@@ -157,9 +156,9 @@ if (orderId) {
 
 // Get scenario value from the data source
 def scenario = context.expand('${DataSource#scenario}')
+def originalName = testRunner.testCase.name
+testRunner.testCase.name = "${scenario} | ${originalName}"
 
-// Set new name with scenario prefix
-testRunner.testCase.name = "${scenario}"
 
 </script>
         </con:config>
@@ -177,7 +176,7 @@ testRunner.testCase.name = "${scenario}"
             <con:assertion type="Valid HTTP Status Codes" id="547f137c-c976-4163-82fa-49b658561c41" name="Valid HTTP Status Codes">
               <con:settings/>
               <con:configuration>
-                <codes>200, 400</codes>
+                <codes>200</codes>
               </con:configuration>
             </con:assertion>
             <con:assertion type="Response SLA Assertion" id="5feb93be-d473-46b5-bb73-e22492dd0659" name="Response SLA">
@@ -330,10 +329,100 @@ testRunner.testCase.name = "${scenario}"
       <con:testStep type="groovy" name="RevertToOriginal" id="f62fda37-a485-4979-ac6a-5477ff7ce756">
         <con:settings/>
         <con:config>
-          <script>testRunner.testCase.name = "TestCase"</script>
+          <script>testRunner.testCase.name = testRunner.testCase.name.split('\\|')[-1].trim()
+</script>
         </con:config>
       </con:testStep>
       <con:testStep type="datasourceloop" name="DataSourceLoop" id="8960acc1-0d4b-4239-bf2c-c5316de0566a">
+        <con:settings/>
+        <con:config>
+          <dataSourceStep>DataSource</dataSourceStep>
+          <targetStep>GroovyScript</targetStep>
+          <discardResults>true</discardResults>
+        </con:config>
+      </con:testStep>
+      <con:properties/>
+      <con:reportParameters/>
+      <con:environmentSpec>
+        <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
+          <con:authProfile>Inherit From Parent</con:authProfile>
+        </con:entry>
+      </con:environmentSpec>
+    </con:testCase>
+    <con:testCase id="98c40366-970f-45dc-8da9-6ef54d7ba988" discardOkResults="false" failOnError="false" failTestCaseOnErrors="true" keepSession="false" name="NegtiveTestCase" searchProperties="true" timeout="0">
+      <con:settings/>
+      <con:testStep type="datasource" name="DataSource" id="8f7d7b89-24cf-48b5-8884-ae0d7f105442">
+        <con:settings/>
+        <con:config xsi:type="con:DataSourceStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:dataSource type="Grid">
+            <con:configuration>
+              <check>&lt;con:entry xmlns:con="http://eviware.com/soapui/config">true&lt;/con:entry></check>
+              <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">POST (Invalid JSON Payload)</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config">{ "orderId": "123"</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
+              <recognizeAsPlainText>true</recognizeAsPlainText>
+            </con:configuration>
+          </con:dataSource>
+          <con:shared>true</con:shared>
+          <con:restartShared>true</con:restartShared>
+          <con:property>Scenario</con:property>
+          <con:property>orderId</con:property>
+          <con:property>payload</con:property>
+          <con:restartOnRun>true</con:restartOnRun>
+          <con:stopDatasourceExhausted>false</con:stopDatasourceExhausted>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="groovy" name="UpdateTestCaseName" id="f0a08d4b-cb08-40bf-aadb-ccb62e741410">
+        <con:settings/>
+        <con:config>
+          <script>// Get scenario value from the data source
+def scenario = context.expand('${DataSource#scenario}')
+def originalName = testRunner.testCase.name
+testRunner.testCase.name = "${scenario} | ${originalName}"
+</script>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="restrequest" name="PostOrder" id="70d8cb53-f870-4729-924f-4e20286fe663">
+        <con:settings/>
+        <con:config service="DemoApp" resourcePath="" methodName="POST" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:restRequest name="PostOrder" id="4ce9855e-746f-4761-a1f0-1c35bb11fb72" mediaType="application/json" postQueryString="false">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:endpoint>https://sandbox-demo-api-mf79wy.5sc6y6-1.usa-e2.cloudhub.io/api/order</con:endpoint>
+            <con:request>${DataSource#payload}</con:request>
+            <con:originalUri>https://sandbox-demo-api-mf79wy.5sc6y6-1.usa-e2.cloudhub.io/api/order</con:originalUri>
+            <con:assertion type="Valid HTTP Status Codes" id="547f137c-c976-4163-82fa-49b658561c41" name="Valid HTTP Status Codes">
+              <con:settings/>
+              <con:configuration>
+                <codes>400</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="Response SLA Assertion" id="5feb93be-d473-46b5-bb73-e22492dd0659" name="Response SLA">
+              <con:configuration>
+                <SLA>1200</SLA>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:parameters/>
+            <con:environmentSpec>
+              <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
+                <con:authProfile>Inherit From Parent</con:authProfile>
+              </con:entry>
+            </con:environmentSpec>
+          </con:restRequest>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="groovy" name="RevertToOriginal" id="10d93e12-d4f8-404d-ac43-adde1d3af4d2">
+        <con:settings/>
+        <con:config>
+          <script>testRunner.testCase.name = testRunner.testCase.name.split('\\|')[-1].trim()
+</script>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="datasourceloop" name="DataSourceLoop" id="abde32d7-cfa9-4e82-84cb-a02ea5d525a6">
         <con:settings/>
         <con:config>
           <dataSourceStep>DataSource</dataSourceStep>
