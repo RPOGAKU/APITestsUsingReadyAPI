@@ -20,11 +20,11 @@ jobs:
           mkdir -p ${{ github.workspace }}/reports
           chmod 777 ${{ github.workspace }}/reports
 
-      - name: Run ReadyAPI tests and generate PDF report
+      - name: Run ReadyAPI tests and generate HTML report
         run: |
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
-          echo "COMMAND_LINE=-Esandbox -sTestSuite -R'TestCase Report' -F'PDF' -f/project/reports /project/DemoAppProject.xml" >> .env
+          echo "COMMAND_LINE=-Esandbox -sTestSuite -RJUnit-Style HTML Report -FHTML -f/project/reports /project/DemoAppProject.xml" >> .env
 
           docker pull smartbear/ready-api-soapui-testrunner
           docker run --env-file .env -v "${{ github.workspace }}:/project" smartbear/ready-api-soapui-testrunner
@@ -35,53 +35,56 @@ jobs:
       - name: Install PyMuPDF
         run: pip install pymupdf
 
-      - name: Parse PDF Report and Generate Summary
+      - name: Parse HTML Report and Generate Summary
         run: |
+          pip install beautifulsoup4
           python3 - <<EOF
           import os
-          import fitz
-
+          from bs4 import BeautifulSoup
+      
           reports_dir = "reports"
-          pdf_filename = None
-
+          html_file = None
+      
           for file in os.listdir(reports_dir):
-              if file.lower().endswith(".pdf"):
-                  pdf_filename = os.path.join(reports_dir, file)
+              if file.lower().endswith(".html"):
+                  html_file = os.path.join(reports_dir, file)
                   break
-
-          if not pdf_filename:
-              raise FileNotFoundError("No PDF report found in the 'reports' directory.")
-
-          doc = fitz.open(pdf_filename)
-          full_text = "".join([page.get_text() for page in doc])
-          lines = full_text.splitlines()
-          test_lines = [line.strip() for line in lines if line.strip().startswith("Scenario:")]
-
+      
+          if not html_file:
+              raise FileNotFoundError("No HTML report found in the 'reports' directory.")
+      
+          with open(html_file, "r", encoding="utf-8") as f:
+              soup = BeautifulSoup(f, "html.parser")
+      
           summary_lines = []
-          summary_lines.append("## 🧪 ReadyAPI Test Summary (from PDF Report)\\n")
+          summary_lines.append("## 🧪 ReadyAPI Test Summary (from HTML Report)\\n")
           summary_lines.append("| Scenario | Step | Status |")
           summary_lines.append("|----------|------|--------|")
-
-          for line in test_lines:
-              parts = line.split("|")
-              if len(parts) == 2:
-                  scenario = parts[0].replace("Scenario:", "").strip()
-                  step = parts[1].strip()
-                  status = "PASSED"
-              elif len(parts) == 3:
-                  scenario = parts[0].replace("Scenario:", "").strip()
-                  step = parts[1].strip()
-                  status = parts[2].strip().upper()
-              else:
-                  continue
-              summary_lines.append(f"| {scenario} | {step} | {status} |")
-
+      
+          rows = soup.find_all("tr")
+          for row in rows:
+              cols = row.find_all("td")
+              if len(cols) >= 3:
+                  name = cols[0].get_text(strip=True)
+                  status = cols[1].get_text(strip=True).upper()
+                  time = cols[2].get_text(strip=True)
+      
+                  if name.startswith("Scenario:") and "|" in name:
+                      parts = name.split("|", 1)
+                      scenario = parts[0].replace("Scenario:", "").strip()
+                      step = parts[1].strip()
+                  else:
+                      scenario = "Unknown"
+                      step = name
+      
+                  summary_lines.append(f"| {scenario} | {step} | {status} |")
+      
           with open(os.environ['GITHUB_STEP_SUMMARY'], "w") as f:
               f.write("\\n".join(summary_lines))
           EOF
 
-      - name: Upload PDF Report Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: readyapi-pdf-report
-          path: reports/*.pdf
+          - name: Upload HTML Report Artifact
+            uses: actions/upload-artifact@v4
+            with:
+              name: readyapi-html-report
+              path: reports/*.html
