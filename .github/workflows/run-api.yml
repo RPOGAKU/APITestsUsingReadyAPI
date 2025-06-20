@@ -15,102 +15,70 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Create reports directory with open permissions
+      - name: Create reports directory
         run: |
           mkdir -p ${{ github.workspace }}/reports
           chmod 777 ${{ github.workspace }}/reports
 
-      - name: Run ReadyAPI tests via Docker
+      - name: Run ReadyAPI tests and generate PDF report
         run: |
-          echo "📂 Listing files in workspace:"
-          ls -la "${{ github.workspace }}"
-
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
-          echo "COMMAND_LINE=-Esandbox -sTestSuite -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
+          echo "COMMAND_LINE=-Esandbox -sTestSuite -FPDF -f/project/reports /project/DemoAppProject.xml" >> .env
 
           docker pull smartbear/ready-api-soapui-testrunner
-
           docker run --env-file .env -v "${{ github.workspace }}:/project" smartbear/ready-api-soapui-testrunner
 
-      - name: Debug Report Directory
-        run: |
-          echo "📁 Contents of reports directory:"
-          ls -la ./reports
+      - name: Install PyMuPDF
+        run: pip install pymupdf
 
-      - name: Display JUnit Test Summary in CLI and Job Summary
+      - name: Parse PDF Report and Generate Summary
         run: |
-          echo "📊 Parsing JUnit XML reports..."
           python3 - <<EOF
           import os
-          import xml.etree.ElementTree as ET
+          import fitz
 
-          report_dir = './reports'
-          total_tests = 0
-          total_failures = 0
-          total_skipped = 0
-          test_results = []
+          reports_dir = "reports"
+          pdf_filename = None
 
-          for filename in os.listdir(report_dir):
-              if filename.endswith('.xml'):
-                  filepath = os.path.join(report_dir, filename)
-                  tree = ET.parse(filepath)
-                  root = tree.getroot()
-                  suites = root.findall('testsuite') if root.tag == 'testsuites' else [root]
+          for file in os.listdir(reports_dir):
+              if file.lower().endswith(".pdf"):
+                  pdf_filename = os.path.join(reports_dir, file)
+                  break
 
-                  for suite in suites:
-                      total_tests += int(suite.attrib.get('tests', 0))
-                      total_failures += int(suite.attrib.get('failures', 0))
-                      total_skipped += int(suite.attrib.get('skipped', 0))
+          if not pdf_filename:
+              raise FileNotFoundError("No PDF report found in the 'reports' directory.")
 
-                      for case in suite.findall('testcase'):
-                          name = case.attrib.get('name', '')
-                          status = 'PASSED'
-                          if case.find('failure') is not None:
-                              status = 'FAILED'
-                          elif case.find('skipped') is not None:
-                              status = 'SKIPPED'
-
-                          if name.startswith("Scenario:"):
-                              parts = name.split('|', 1)
-                              scenario = parts[0].replace("Scenario:", "").strip()
-                              test_name = parts[1].strip() if len(parts) > 1 else "Unnamed"
-                          else:
-                              scenario, test_name = 'Unknown', name
-
-                          test_results.append((scenario, test_name, status))
+          doc = fitz.open(pdf_filename)
+          full_text = "".join([page.get_text() for page in doc])
+          lines = full_text.splitlines()
+          test_lines = [line.strip() for line in lines if line.strip().startswith("Scenario:")]
 
           summary_lines = []
-          summary_lines.append("## 🧪 ReadyAPI Test Summary\n")
-          summary_lines.append("| Result | Count |")
-          summary_lines.append("|--------|-------|")
-          summary_lines.append(f"| Total  | {total_tests} |")
-          summary_lines.append(f"| Passed | {total_tests - total_failures - total_skipped} |")
-          summary_lines.append(f"| Failed | {total_failures} |")
-          summary_lines.append(f"| Skipped| {total_skipped} |\n")
+          summary_lines.append("## 🧪 ReadyAPI Test Summary (from PDF Report)\\n")
+          summary_lines.append("| Scenario | Step | Status |")
+          summary_lines.append("|----------|------|--------|")
 
-          summary_lines.append("### 📋 Individual Test Results")
-          summary_lines.append("| Scenario | Test Name | Status |")
-          summary_lines.append("|----------|-----------|--------|")
-          for scenario, name, status in test_results:
-              summary_lines.append(f"| {scenario} | {name} | {status} |")
+          for line in test_lines:
+              parts = line.split("|")
+              if len(parts) == 2:
+                  scenario = parts[0].replace("Scenario:", "").strip()
+                  step = parts[1].strip()
+                  status = "PASSED"
+              elif len(parts) == 3:
+                  scenario = parts[0].replace("Scenario:", "").strip()
+                  step = parts[1].strip()
+                  status = parts[2].strip().upper()
+              else:
+                  continue
+              summary_lines.append(f"| {scenario} | {step} | {status} |")
 
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'w') as summary_file:
-              summary_file.write('\n'.join(summary_lines))
-
-          print('\n'.join(summary_lines))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], "w") as f:
+              f.write("\\n".join(summary_lines))
           EOF
 
-      - name: Upload Test Results
+      - name: Upload PDF Report Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: readyapi-results
-          path: ./reports
-
-      - name: Publish Test Report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: ReadyAPI Test Results
-          path: ./reports/*.xml
-          reporter: java-junit
+          name: readyapi-pdf-report
+          path: reports/*.pdf
