@@ -72,11 +72,11 @@ jobs:
                               status = 'SKIPPED'
 
                           if name.startswith("Scenario:"):
-                              parts = name.split('|', 1)
-                              scenario = parts[0].replace("Scenario:", "").strip()
-                              test_name = parts[1].strip() if len(parts) > 1 else "Unnamed"
+                              parts = name.split('|', 1)
+                              scenario = parts[0].replace("Scenario:", "").strip()
+                              test_name = parts[1].strip() if len(parts) > 1 else "Unnamed"
                           else:
-                              scenario, test_name = 'Unknown', name
+                              scenario, test_name = 'Unknown', name
 
                           test_results.append((scenario, test_name, status))
 
