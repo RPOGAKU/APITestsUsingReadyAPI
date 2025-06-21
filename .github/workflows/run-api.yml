@@ -20,71 +20,59 @@ jobs:
           mkdir -p ${{ github.workspace }}/reports
           chmod 777 ${{ github.workspace }}/reports
 
-      - name: Run ReadyAPI tests and generate HTML report
+      - name: Run ReadyAPI tests and generate JUnit report
         run: |
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
-          echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env 
-          echo "COMMAND_LINE=-Esandbox -sTestSuite -R'HTML Report' -FHTML -f/project/reports /project/DemoAppProject.xml" >> .env
+          echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
+          echo "COMMAND_LINE=-Esandbox -sTestSuite -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
 
           docker pull smartbear/ready-api-soapui-testrunner
           docker run --env-file .env -v "${{ github.workspace }}:/project" smartbear/ready-api-soapui-testrunner
-          
-      - name: List contents of reports directory
-        run: ls -la reports
 
-      - name: Install PyMuPDF
-        run: pip install pymupdf
+      - name: Convert JUnit XML to HTML
+        run: |
+          pip install junit2html
+          junit2html reports/*.xml reports/report.html
 
-      - name: Parse HTML Report and Generate Summary
+      - name: Parse HTML Report and Display Summary
         run: |
           pip install beautifulsoup4
           python3 - <<EOF
           import os
           from bs4 import BeautifulSoup
-      
-          reports_dir = "reports"
-          html_file = None
-      
-          for file in os.listdir(reports_dir):
-              if file.lower().endswith(".html"):
-                  html_file = os.path.join(reports_dir, file)
-                  break
-      
-          if not html_file:
-              raise FileNotFoundError("No HTML report found in the 'reports' directory.")
-      
+
+          html_file = "reports/report.html"
+          if not os.path.exists(html_file):
+              raise FileNotFoundError("HTML report not found.")
+
           with open(html_file, "r", encoding="utf-8") as f:
               soup = BeautifulSoup(f, "html.parser")
-      
+
           summary_lines = []
-          summary_lines.append("## 🧪 ReadyAPI Test Summary (from HTML Report)\\n")
-          summary_lines.append("| Scenario | Step | Status |")
-          summary_lines.append("|----------|------|--------|")
-      
-          rows = soup.find_all("tr")
-          for row in rows:
+          summary_lines.append("## 🧪 ReadyAPI Test Summary (from JUnit HTML Report)\n")
+          summary_lines.append("| Test Case | Status | Duration |")
+          summary_lines.append("|-----------|--------|----------|")
+
+          for row in soup.find_all("tr"):
               cols = row.find_all("td")
               if len(cols) >= 3:
-                  name = cols[0].get_text(strip=True)
-                  status = cols[1].get_text(strip=True).upper()
-                  time = cols[2].get_text(strip=True)
-      
-                  if name.startswith("Scenario:") and "|" in name:
-                      parts = name.split("|", 1)
-                      scenario = parts[0].replace("Scenario:", "").strip()
-                      step = parts[1].strip()
-                  else:
-                      scenario = "Unknown"
-                      step = name
-      
-                  summary_lines.append(f"| {scenario} | {step} | {status} |")
-      
+                  test_case = cols[0].get_text(strip=True)
+                  status = cols[1].get_text(strip=True)
+                  duration = cols[2].get_text(strip=True)
+                  summary_lines.append(f"| {test_case} | {status} | {duration} |")
+
+          summary = "\n".join(summary_lines)
+
+          # Print to CLI
+          print(summary)
+
+          # Write to GitHub Actions summary
           with open(os.environ['GITHUB_STEP_SUMMARY'], "w") as f:
-              f.write("\\n".join(summary_lines))
+              f.write(summary)
           EOF
 
-          - name: Upload HTML Report Artifact
-            uses: actions/upload-artifact@v4
-            with:
-              name: readyapi-html-report
-              path: reports/*.html
+      - name: Upload HTML Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: readyapi-html-report
+          path: reports/report.html
