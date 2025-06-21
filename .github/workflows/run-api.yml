@@ -29,10 +29,18 @@ jobs:
           docker pull smartbear/ready-api-soapui-testrunner
           docker run --env-file .env -v "${{ github.workspace }}:/project" smartbear/ready-api-soapui-testrunner
 
+      - name: Debug - List XML files
+        run: ls -l reports/*.xml
+      
       - name: Convert JUnit XML to HTML
         run: |
-          pip install junit2html
-          junit2html reports/*.xml reports/report.html
+          pip install --user junit2html
+          xml_file=$(find reports -name "*.xml" | head -n 1)
+          if [ -z "$xml_file" ]; then
+            echo "❌ No XML report found!"
+            exit 1
+          fi
+          junit2html "$xml_file" reports/report.html
 
       - name: Parse HTML Report and Display Summary
         run: |
