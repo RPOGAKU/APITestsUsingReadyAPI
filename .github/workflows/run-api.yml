@@ -37,46 +37,55 @@ jobs:
 
       - name: Parse HTML Report and Display Summary
         run: |
+          pip install beautifulsoup4
           python3 - <<EOF
           import os
           from bs4 import BeautifulSoup
-
-          html_file = next((f for f in os.listdir("reports") if f.endswith(".html")), None)
+      
+          html_file = None
+          for root, dirs, files in os.walk("reports"):
+              for file in files:
+                  if file.endswith(".html") and "index" in file.lower():
+                      html_file = os.path.join(root, file)
+                      break
+              if html_file:
+                  break
+      
           if not html_file:
-              raise FileNotFoundError("No HTML report found in 'reports' directory.")
-
-          with open(os.path.join("reports", html_file), "r", encoding="utf-8") as f:
+              raise FileNotFoundError("No HTML report found in 'reports' directory or subdirectories.")
+      
+          with open(html_file, "r", encoding="utf-8") as f:
               soup = BeautifulSoup(f, "html.parser")
-
+      
           summary_lines = []
-          summary_lines.append("## 🧪 ReadyAPI HTML Test Summary\\n")
+          summary_lines.append("## 🧪 ReadyAPI HTML Test Summary\n")
           summary_lines.append("| Test Case | Step | Status | Duration |")
           summary_lines.append("|-----------|------|--------|----------|")
-
+      
           for test_div in soup.find_all("div", class_="test"):
               table = test_div.find("table", class_="proplist")
               if not table:
                   continue
-
+      
               rows = table.find_all("tr")
               test_case = status = duration = "N/A"
-
+      
               for row in rows:
                   header = row.find("th").get_text(strip=True)
                   value = row.find("td").get_text(strip=True)
-
+      
                   if "Test case" in header:
                       test_case = value
                   elif "Outcome" in header:
                       status = value
                   elif "Duration" in header:
                       duration = value
-
+      
               summary_lines.append(f"| {test_case} | — | {status} | {duration} |")
-
-          summary = "\\n".join(summary_lines)
+      
+          summary = "\n".join(summary_lines)
           print(summary)
-
+      
           if "GITHUB_STEP_SUMMARY" in os.environ:
               with open(os.environ["GITHUB_STEP_SUMMARY"], "w") as f:
                   f.write(summary)
