@@ -20,72 +20,79 @@ jobs:
           mkdir -p ${{ github.workspace }}/reports
           chmod 777 ${{ github.workspace }}/reports
 
-      - name: Run ReadyAPI tests and generate JUnit report
+      - name: Run ReadyAPI tests and generate PDF report
         run: |
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
-          echo "COMMAND_LINE=-Esandbox -sTestSuite -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
+          echo "COMMAND_LINE=-Esandbox -sTestSuite -RPDF -FPDF -f/project/reports /project/DemoAppProject.xml" >> .env
 
           docker pull smartbear/ready-api-soapui-testrunner
           docker run --env-file .env -v "${{ github.workspace }}:/project" smartbear/ready-api-soapui-testrunner
 
-      - name: Debug - List XML files
-        run: ls -l reports/*.xml
-      
-      - name: Convert JUnit XML to HTML
-        run: |
-          pip install --user junit2html
-          junit2html reports/TEST-TestSuite.xml reports/report.html
+      - name: List PDF reports
+        run: ls -lh reports/*.pdf
 
-      - name: Parse HTML Report and Display Summary
+      - name: Install PDF parser dependencies
+        run: pip install pymupdf
+
+      - name: Parse PDF Report and Display Summary
         run: |
-          pip install beautifulsoup4
           python3 - <<EOF
+          import fitz  # PyMuPDF
+          import re
           import os
-          from bs4 import BeautifulSoup
-      
-          html_file = "reports/report.html"
-          if not os.path.exists(html_file):
-              raise FileNotFoundError("HTML report not found.")
-      
-          with open(html_file, "r", encoding="utf-8") as f:
-              soup = BeautifulSoup(f, "html.parser")
-      
+
+          pdf_path = "reports/DemoAppProject Test Results 1.pdf"
+          doc = fitz.open(pdf_path)
+          full_text = "".join([page.get_text() for page in doc])
+          doc.close()
+
+          test_cases = []
+          current_case = {}
+          lines = full_text.splitlines()
+
+          for i, line in enumerate(lines):
+              line = line.strip()
+              if line.endswith("Summary"):
+                  if current_case:
+                      test_cases.append(current_case)
+                      current_case = {}
+                  current_case["Test Case"] = line.replace(" Summary", "").strip()
+                  if i + 1 < len(lines):
+                      next_line = lines[i + 1].strip()
+                      match = re.match(r"(PASS|FAIL)\\s+\\d{2}:\\d{2}:\\d{2}\\s+(\\d+\\s*ms)", next_line)
+                      if match:
+                          current_case["Status"] = match.group(1)
+                          current_case["Duration"] = match.group(2)
+              else:
+                  match = re.match(r"Step\\s+\\d+\\s+\\[(.*?)\\]\\s+(\\w+):\\s+took\\s+([\\d.]+)\\s+ms", line)
+                  if match:
+                      step_name, step_status, step_time = match.groups()
+                      step_info = f"{step_name} ({step_status}, {step_time} ms)"
+                      current_case.setdefault("Steps", []).append(step_info)
+
+          if current_case:
+              test_cases.append(current_case)
+
           summary_lines = []
-          summary_lines.append("## 🧪 ReadyAPI Test Summary (from JUnit HTML Report)\n")
-          summary_lines.append("| Test Case | Status | Duration |")
-          summary_lines.append("|-----------|--------|----------|")
-      
-          for test_div in soup.find_all("div", class_="test"):
-              table = test_div.find("table", class_="proplist")
-              if not table:
-                  continue
-      
-              rows = table.find_all("tr")
-              test_case = status = duration = "N/A"
-      
-              for row in rows:
-                  header = row.find("th").get_text(strip=True)
-                  value = row.find("td").get_text(strip=True)
-      
-                  if "Test case" in header:
-                      test_case = value
-                  elif "Outcome" in header:
-                      status = value
-                  elif "Duration" in header:
-                      duration = value
-      
-              summary_lines.append(f"| {test_case} | {status} | {duration} |")
-      
-          summary = "\n".join(summary_lines)
+          summary_lines.append("## 🧪 ReadyAPI PDF Test Summary\\n")
+          summary_lines.append("| Test Case | Status | Duration | Steps |")
+          summary_lines.append("|-----------|--------|----------|-------|")
+
+          for case in test_cases:
+              steps = "; ".join(case.get("Steps", []))
+              summary_lines.append(f"| {case.get('Test Case', '')} | {case.get('Status', '')} | {case.get('Duration', '')} | {steps} |")
+
+          summary = "\\n".join(summary_lines)
           print(summary)
-      
-          with open(os.environ['GITHUB_STEP_SUMMARY'], "w") as f:
-              f.write(summary)
+
+          if "GITHUB_STEP_SUMMARY" in os.environ:
+              with open(os.environ["GITHUB_STEP_SUMMARY"], "w") as f:
+                  f.write(summary)
           EOF
 
-      - name: Upload HTML Report Artifact
+      - name: Upload PDF Report Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: readyapi-html-report
-          path: reports/report.html
+          name: readyapi-pdf-report
+          path: reports/*.pdf
