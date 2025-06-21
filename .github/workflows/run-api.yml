@@ -35,12 +35,7 @@ jobs:
       - name: Convert JUnit XML to HTML
         run: |
           pip install --user junit2html
-          xml_file=$(find reports -name "*.xml" | head -n 1)
-          if [ -z "$xml_file" ]; then
-            echo "❌ No XML report found!"
-            exit 1
-          fi
-          junit2html "$xml_file" reports/report.html
+          junit2html reports/TEST-TestSuite.xml reports/report.html
 
       - name: Parse HTML Report and Display Summary
         run: |
@@ -48,33 +43,36 @@ jobs:
           python3 - <<EOF
           import os
           from bs4 import BeautifulSoup
-
+      
           html_file = "reports/report.html"
           if not os.path.exists(html_file):
               raise FileNotFoundError("HTML report not found.")
-
+      
           with open(html_file, "r", encoding="utf-8") as f:
               soup = BeautifulSoup(f, "html.parser")
-
+      
+          rows = soup.find_all("tr")
+          if not rows:
+              print("⚠️ No <tr> rows found in HTML. Dumping HTML for inspection:")
+              print(soup.prettify())
+              exit(1)
+      
           summary_lines = []
           summary_lines.append("## 🧪 ReadyAPI Test Summary (from JUnit HTML Report)\n")
           summary_lines.append("| Test Case | Status | Duration |")
           summary_lines.append("|-----------|--------|----------|")
-
-          for row in soup.find_all("tr"):
+      
+          for row in rows:
               cols = row.find_all("td")
               if len(cols) >= 3:
                   test_case = cols[0].get_text(strip=True)
                   status = cols[1].get_text(strip=True)
                   duration = cols[2].get_text(strip=True)
                   summary_lines.append(f"| {test_case} | {status} | {duration} |")
-
+      
           summary = "\n".join(summary_lines)
-
-          # Print to CLI
           print(summary)
-
-          # Write to GitHub Actions summary
+      
           with open(os.environ['GITHUB_STEP_SUMMARY'], "w") as f:
               f.write(summary)
           EOF
