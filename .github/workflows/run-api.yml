@@ -51,24 +51,31 @@ jobs:
           with open(html_file, "r", encoding="utf-8") as f:
               soup = BeautifulSoup(f, "html.parser")
       
-          rows = soup.find_all("tr")
-          if not rows:
-              print("⚠️ No <tr> rows found in HTML. Dumping HTML for inspection:")
-              print(soup.prettify())
-              exit(1)
-      
           summary_lines = []
           summary_lines.append("## 🧪 ReadyAPI Test Summary (from JUnit HTML Report)\n")
           summary_lines.append("| Test Case | Status | Duration |")
           summary_lines.append("|-----------|--------|----------|")
       
-          for row in rows:
-              cols = row.find_all("td")
-              if len(cols) >= 3:
-                  test_case = cols[0].get_text(strip=True)
-                  status = cols[1].get_text(strip=True)
-                  duration = cols[2].get_text(strip=True)
-                  summary_lines.append(f"| {test_case} | {status} | {duration} |")
+          for test_div in soup.find_all("div", class_="test"):
+              table = test_div.find("table", class_="proplist")
+              if not table:
+                  continue
+      
+              rows = table.find_all("tr")
+              test_case = status = duration = "N/A"
+      
+              for row in rows:
+                  header = row.find("th").get_text(strip=True)
+                  value = row.find("td").get_text(strip=True)
+      
+                  if "Test case" in header:
+                      test_case = value
+                  elif "Outcome" in header:
+                      status = value
+                  elif "Duration" in header:
+                      duration = value
+      
+              summary_lines.append(f"| {test_case} | {status} | {duration} |")
       
           summary = "\n".join(summary_lines)
           print(summary)
