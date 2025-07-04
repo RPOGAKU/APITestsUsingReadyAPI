@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<con:soapui-project id="ea13d835-860e-4a07-991c-ebe364465e7d" created="3.58.0" activeEnvironment="Default environment" encryptionMode="Not encrypted" name="DemoAppProject2" projectVersion="" updated="3.58.0 2025-01-10T10:05:45Z" xmlns:con="http://eviware.com/soapui/config">
+<con:soapui-project id="ea13d835-860e-4a07-991c-ebe364465e7d" created="3.58.0" activeEnvironment="sandbox" encryptionMode="Not encrypted" name="DemoAppProject2" projectVersion="" updated="3.58.0 2025-01-10T10:05:45Z" xmlns:con="http://eviware.com/soapui/config">
   <con:settings/>
   <con:interface xsi:type="con:RestService" id="d99d8b3b-aeab-4460-84c3-c680540e8026" name="DemoApp" type="rest_ex" wadlVersion="https://swagger.io/openapiv3/specification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <con:settings id="222392bc-9b13-4d36-b31d-c95b5412989d"/>
@@ -17,6 +17,9 @@
       <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
         <con:authProfile>Inherit From Parent</con:authProfile>
       </con:entry>
+      <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
+        <con:authProfile>Inherit From Parent</con:authProfile>
+      </con:entry>
     </con:environmentSpec>
     <con:resource name="" path="" id="f4a38e13-f7db-40d5-a3bb-bc54c8816869">
       <con:settings/>
@@ -28,7 +31,7 @@
           <con:settings>
             <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
           </con:settings>
-          <con:endpoint>https://sandbox-demo-api-mf79wy.5sc6y6-1.usa-e2.cloudhub.io/api/order</con:endpoint>
+          <con:endpoint xsi:nil="true"/>
           <con:request/>
           <con:credentials>
             <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
@@ -40,10 +43,16 @@
             <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
               <con:authProfile>Inherit From Parent</con:authProfile>
             </con:entry>
+            <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
+              <con:authProfile>Inherit From Parent</con:authProfile>
+            </con:entry>
           </con:environmentSpec>
         </con:request>
         <con:environmentSpec>
           <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
+            <con:authProfile>Inherit From Parent</con:authProfile>
+          </con:entry>
+          <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
             <con:authProfile>Inherit From Parent</con:authProfile>
           </con:entry>
         </con:environmentSpec>
@@ -62,7 +71,7 @@
           <con:settings>
             <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
           </con:settings>
-          <con:endpoint>https://sandbox-demo-api-mf79wy.5sc6y6-1.usa-e2.cloudhub.io/api/order</con:endpoint>
+          <con:endpoint xsi:nil="true"/>
           <con:request/>
           <con:credentials>
             <con:selectedAuthProfile>No Authorization</con:selectedAuthProfile>
@@ -77,16 +86,25 @@
             <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
               <con:authProfile>Inherit From Parent</con:authProfile>
             </con:entry>
+            <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
+              <con:authProfile>Inherit From Parent</con:authProfile>
+            </con:entry>
           </con:environmentSpec>
         </con:request>
         <con:environmentSpec>
           <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
             <con:authProfile>Inherit From Parent</con:authProfile>
           </con:entry>
+          <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
+            <con:authProfile>Inherit From Parent</con:authProfile>
+          </con:entry>
         </con:environmentSpec>
       </con:method>
       <con:environmentSpec>
         <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
+          <con:authProfile>Inherit From Parent</con:authProfile>
+        </con:entry>
+        <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
           <con:authProfile>Inherit From Parent</con:authProfile>
         </con:entry>
       </con:environmentSpec>
@@ -181,6 +199,9 @@ if (orderId) {
             <con:parameters/>
             <con:environmentSpec>
               <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
+                <con:authProfile>Inherit From Parent</con:authProfile>
+              </con:entry>
+              <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
                 <con:authProfile>Inherit From Parent</con:authProfile>
               </con:entry>
             </con:environmentSpec>
@@ -311,6 +332,9 @@ if (orderId) {
               <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
                 <con:authProfile>Inherit From Parent</con:authProfile>
               </con:entry>
+              <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
+                <con:authProfile>Inherit From Parent</con:authProfile>
+              </con:entry>
             </con:environmentSpec>
           </con:restRequest>
         </con:config>
@@ -327,6 +351,9 @@ if (orderId) {
       <con:reportParameters/>
       <con:environmentSpec>
         <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
+          <con:authProfile>Inherit From Parent</con:authProfile>
+        </con:entry>
+        <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
           <con:authProfile>Inherit From Parent</con:authProfile>
         </con:entry>
       </con:environmentSpec>
@@ -359,7 +386,7 @@ if (orderId) {
             <con:settings>
               <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
             </con:settings>
-            <con:endpoint>https://sandbox-demo-api-mf79wy.5sc6y6-1.usa-e2.cloudhub.io/api/order</con:endpoint>
+            <con:endpoint xsi:nil="true"/>
             <con:request>${DataSource#payload}</con:request>
             <con:originalUri>https://sandbox-demo-api-mf79wy.5sc6y6-1.usa-e2.cloudhub.io/api/order</con:originalUri>
             <con:assertion type="Valid HTTP Status Codes" id="547f137c-c976-4163-82fa-49b658561c41" name="Valid HTTP Status Codes">
@@ -383,6 +410,9 @@ if (orderId) {
               <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
                 <con:authProfile>Inherit From Parent</con:authProfile>
               </con:entry>
+              <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
+                <con:authProfile>Inherit From Parent</con:authProfile>
+              </con:entry>
             </con:environmentSpec>
           </con:restRequest>
         </con:config>
@@ -393,12 +423,18 @@ if (orderId) {
         <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
           <con:authProfile>Inherit From Parent</con:authProfile>
         </con:entry>
+        <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
+          <con:authProfile>Inherit From Parent</con:authProfile>
+        </con:entry>
       </con:environmentSpec>
     </con:testCase>
     <con:properties/>
     <con:reportParameters/>
     <con:environmentSpec>
       <con:entry environmentId="11c85ccb-8089-469e-9580-6c8fd3d0553a">
+        <con:authProfile>Inherit From Parent</con:authProfile>
+      </con:entry>
+      <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
         <con:authProfile>Inherit From Parent</con:authProfile>
       </con:entry>
     </con:environmentSpec>
@@ -442,6 +478,18 @@ if (orderId) {
 // pw.close()
 // fos.close()</con:script>
   </con:eventHandlers>
+  <con:environment id="904abfcd-f000-47c0-af15-74dbc8eabadb" name="sandbox" index="0">
+    <con:service type="REST" name="DemoApp">
+      <con:endpoint authProfile="No Authorization" proxyHost="" proxyPort="" proxyUsername="" proxyPassword="" areGlobalProxySettingsIgnored="false">https://sandbox-demo-api-mf79wy.5sc6y6-1.usa-e2.cloudhub.io/api/order</con:endpoint>
+    </con:service>
+    <con:databaseConnectionContainer/>
+    <con:jmsConnectionContainer/>
+  </con:environment>
   <con:authRepository/>
+  <con:environmentSpec>
+    <con:entry environmentId="904abfcd-f000-47c0-af15-74dbc8eabadb">
+      <con:authProfile>No Authorization</con:authProfile>
+    </con:entry>
+  </con:environmentSpec>
   <con:tags/>
 </con:soapui-project>
