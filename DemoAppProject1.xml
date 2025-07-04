@@ -155,7 +155,9 @@ if (orderId) {
     getStep.setDisabled(true)
 } else {
     log.info "Neither orderId nor payload is provided."
-}</script>
+}
+
+log.info "Running scenario: ${scenario}, orderId: ${orderId}, payload: ${payload}"</script>
         </con:config>
       </con:testStep>
       <con:testStep type="restrequest" name="PostOrder" id="5df60559-1a1c-46b5-9039-5646df7c4cfc">
