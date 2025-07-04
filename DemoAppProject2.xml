@@ -129,7 +129,7 @@
         <con:config xsi:type="con:DataSourceStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:dataSource type="Grid">
             <con:configuration>
-              <check><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry></xml-fragment>]]></check>
+              <check><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">false</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">true</con:entry></xml-fragment>]]></check>
               <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">GET</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config">1-13EU3D</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
               <row><![CDATA[<xml-fragment><con:entry xmlns:con="http://eviware.com/soapui/config">POST</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/><con:entry xmlns:con="http://eviware.com/soapui/config">{   "order":[     {       "orderId":"1-13EU3D",       "created":"2007-01-29 19:24:07.000",       "createdBy":"1-31-200",       "lastUpd":"2015-03-16 18:58:26.000",       "lastUpdBy":"0-1",       "modificationNum":6,       "activeFlg":"Y"          }   ] }</con:entry><con:entry xmlns:con="http://eviware.com/soapui/config"/></xml-fragment>]]></row>
               <recognizeAsPlainText>true</recognizeAsPlainText>
@@ -439,6 +439,7 @@ if (orderId) {
       </con:entry>
     </con:environmentSpec>
   </con:testSuite>
+  <con:requirements/>
   <con:properties/>
   <con:wssContainer/>
   <con:databaseConnectionContainer/>
