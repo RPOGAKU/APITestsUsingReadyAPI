@@ -2,6 +2,11 @@ name: Run ReadyAPI Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      projectFile:
+        description: 'Path to ReadyAPI project file'
+        required: true
+        default: 'DemoAppProject.xml'
 
 permissions:
   checks: write
@@ -24,7 +29,7 @@ jobs:
         run: |
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
-          echo "COMMAND_LINE=-Esandbox -sTestSuite -RJUnit -j -f/project/reports /project/DemoAppProject.xml" >> .env
+          echo "COMMAND_LINE=-Esandbox -sTestSuite -RJUnit -j -f/project/reports /project//${{ github.event.inputs.projectFile }}" >> .env
 
           docker pull smartbear/ready-api-soapui-testrunner
           docker run --env-file .env -v "${{ github.workspace }}:/project" smartbear/ready-api-soapui-testrunner
