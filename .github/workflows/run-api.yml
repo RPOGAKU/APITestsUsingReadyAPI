@@ -16,10 +16,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Create reports directory
-        run: |
-          mkdir -p ${{ github.workspace }}/reports
-          chmod 777 ${{ github.workspace }}/reports
+      
 
       - name: Run ReadyAPI tests and generate JUnit reports
         run: |
