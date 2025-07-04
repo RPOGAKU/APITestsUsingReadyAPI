@@ -32,63 +32,73 @@ jobs:
       - name: Debug - List XML files
         run: ls -l reports/*.xml
 
-      - name: Convert all JUnit XMLs to HTML
-        run: |
-          pip install --user junit2html
-          for file in reports/*.xml; do
-            base=$(basename "$file" .xml)
-            junit2html "$file" "reports/${base}.html"
-          done
-
-      - name: Parse All HTML Reports and Display Summary
+      - name: Parse XML Reports and Display Summary
         run: |
           pip install beautifulsoup4
           python3 - <<EOF
           import os
+          import xml.etree.ElementTree as ET
+          import re
+          from html import unescape
           from bs4 import BeautifulSoup
 
-          report_dir = "reports"
           summary_lines = []
-          summary_lines.append("## 🧪 ReadyAPI Test Summary (from All JUnit HTML Reports)\\n")
-          summary_lines.append("| Report | Test Case | Status | Duration |")
-          summary_lines.append("|--------|-----------|--------|----------|")
+          summary_lines.append("## 🧪 ReadyAPI Test Summary\n")
 
-          for filename in os.listdir(report_dir):
-              if filename.endswith(".html"):
-                  filepath = os.path.join(report_dir, filename)
-                  with open(filepath, "r", encoding="utf-8") as f:
-                      soup = BeautifulSoup(f, "html.parser")
+          # --- Parse report.xml ---
+          report_path = "reports/report.xml"
+          if os.path.exists(report_path):
+              summary_lines.append("### 📄 JUnit Report Summary (report.xml)")
+              summary_lines.append("| Test Case | Status | Duration |")
+              summary_lines.append("|-----------|--------|----------|")
+              tree = ET.parse(report_path)
+              root = tree.getroot()
+              for testcase in root.findall(".//testcase"):
+                  name = testcase.attrib.get("name", "N/A")
+                  time = testcase.attrib.get("time", "N/A")
+                  status = "Passed"
+                  if testcase.find("failure") is not None:
+                      status = "Failed"
+                  elif testcase.find("error") is not None:
+                      status = "Error"
+                  summary_lines.append(f"| {name} | {status} | {time} |")
+          else:
+              summary_lines.append("❌ `report.xml` not found.\n")
 
-                  for test_div in soup.find_all("div", class_="test"):
-                      table = test_div.find("table", class_="proplist")
-                      if not table:
-                          continue
+          # --- Parse TEST-TestSuite.xml ---
+          test_suite_path = "reports/TEST-TestSuite.xml"
+          if os.path.exists(test_suite_path):
+              summary_lines.append("\n### 🧾 Detailed Step Summary (TEST-TestSuite.xml)")
+              summary_lines.append("| Test Case | Step Name | Status | Info |")
+              summary_lines.append("|-----------|-----------|--------|------|")
+              tree = ET.parse(test_suite_path)
+              root = tree.getroot()
+              for testcase in root.findall(".//testcase"):
+                  test_case_name = testcase.attrib.get("name", "N/A")
+                  success = testcase.find("success")
+                  if success is not None and success.text:
+                      cdata_content = unescape(success.text)
+                      steps = re.findall(r"<h3><b>(.*?)</b></h3>\\s*<pre>(.*?)</pre>", cdata_content, re.DOTALL)
+                      for step in steps:
+                          step_info = step[0]
+                          info = step[1].strip()
+                          if " " in step_info:
+                              step_name, status = step_info.rsplit(" ", 1)
+                          else:
+                              step_name, status = step_info, "N/A"
+                          summary_lines.append(f"| {test_case_name} | {step_name} | {status} | {info} |")
+          else:
+              summary_lines.append("❌ `TEST-TestSuite.xml` not found.\n")
 
-                      rows = table.find_all("tr")
-                      test_case = status = duration = "N/A"
-
-                      for row in rows:
-                          header = row.find("th").get_text(strip=True)
-                          value = row.find("td").get_text(strip=True)
-
-                          if "Test case" in header:
-                              test_case = value
-                          elif "Outcome" in header:
-                              status = value
-                          elif "Duration" in header:
-                              duration = value
-
-                      summary_lines.append(f"| {filename} | {test_case} | {status} | {duration} |")
-
+          # Write to GitHub summary
           summary = "\\n".join(summary_lines)
           print(summary)
-
           with open(os.environ['GITHUB_STEP_SUMMARY'], "w") as f:
               f.write(summary)
           EOF
 
-      - name: Upload All HTML Reports
+      - name: Upload All XML Reports
         uses: actions/upload-artifact@v4
         with:
-          name: readyapi-html-reports
-          path: reports/*.html
+          name: readyapi-xml-reports
+          path: reports/*.xml
