@@ -20,7 +20,7 @@ jobs:
           mkdir -p ${{ github.workspace }}/reports
           chmod 777 ${{ github.workspace }}/reports
 
-      - name: Run ReadyAPI tests and generate JUnit report
+      - name: Run ReadyAPI tests and generate JUnit reports
         run: |
           echo "SLM_LICENSE_SERVER=${{ secrets.SLM_LICENSE_SERVER }}" > .env
           echo "API_KEY=${{ secrets.SLM_API_KEY }}" >> .env
@@ -31,61 +31,64 @@ jobs:
 
       - name: Debug - List XML files
         run: ls -l reports/*.xml
-      
-      - name: Convert JUnit XML to HTML
+
+      - name: Convert all JUnit XMLs to HTML
         run: |
           pip install --user junit2html
-          junit2html reports/TEST-TestSuite.xml reports/report.html
+          for file in reports/*.xml; do
+            base=$(basename "$file" .xml)
+            junit2html "$file" "reports/${base}.html"
+          done
 
-      - name: Parse HTML Report and Display Summary
+      - name: Parse All HTML Reports and Display Summary
         run: |
           pip install beautifulsoup4
           python3 - <<EOF
           import os
           from bs4 import BeautifulSoup
-      
-          html_file = "reports/report.html"
-          if not os.path.exists(html_file):
-              raise FileNotFoundError("HTML report not found.")
-      
-          with open(html_file, "r", encoding="utf-8") as f:
-              soup = BeautifulSoup(f, "html.parser")
-      
+
+          report_dir = "reports"
           summary_lines = []
-          summary_lines.append("## 🧪 ReadyAPI Test Summary (from JUnit HTML Report)\n")
-          summary_lines.append("| Test Case | Status | Duration |")
-          summary_lines.append("|-----------|--------|----------|")
-      
-          for test_div in soup.find_all("div", class_="test"):
-              table = test_div.find("table", class_="proplist")
-              if not table:
-                  continue
-      
-              rows = table.find_all("tr")
-              test_case = status = duration = "N/A"
-      
-              for row in rows:
-                  header = row.find("th").get_text(strip=True)
-                  value = row.find("td").get_text(strip=True)
-      
-                  if "Test case" in header:
-                      test_case = value
-                  elif "Outcome" in header:
-                      status = value
-                  elif "Duration" in header:
-                      duration = value
-      
-              summary_lines.append(f"| {test_case} | {status} | {duration} |")
-      
-          summary = "\n".join(summary_lines)
+          summary_lines.append("## 🧪 ReadyAPI Test Summary (from All JUnit HTML Reports)\\n")
+          summary_lines.append("| Report | Test Case | Status | Duration |")
+          summary_lines.append("|--------|-----------|--------|----------|")
+
+          for filename in os.listdir(report_dir):
+              if filename.endswith(".html"):
+                  filepath = os.path.join(report_dir, filename)
+                  with open(filepath, "r", encoding="utf-8") as f:
+                      soup = BeautifulSoup(f, "html.parser")
+
+                  for test_div in soup.find_all("div", class_="test"):
+                      table = test_div.find("table", class_="proplist")
+                      if not table:
+                          continue
+
+                      rows = table.find_all("tr")
+                      test_case = status = duration = "N/A"
+
+                      for row in rows:
+                          header = row.find("th").get_text(strip=True)
+                          value = row.find("td").get_text(strip=True)
+
+                          if "Test case" in header:
+                              test_case = value
+                          elif "Outcome" in header:
+                              status = value
+                          elif "Duration" in header:
+                              duration = value
+
+                      summary_lines.append(f"| {filename} | {test_case} | {status} | {duration} |")
+
+          summary = "\\n".join(summary_lines)
           print(summary)
-      
+
           with open(os.environ['GITHUB_STEP_SUMMARY'], "w") as f:
               f.write(summary)
           EOF
 
-      - name: Upload HTML Report Artifact
+      - name: Upload All HTML Reports
         uses: actions/upload-artifact@v4
         with:
-          name: readyapi-html-report
-          path: reports/report.html
+          name: readyapi-html-reports
+          path: reports/*.html
